@@ -65,7 +65,7 @@ class MarkovChain:
         }
 
     @staticmethod
-    def log_message(movetype: int, name: str, result: bool) -> str:
+    def log_message(movetype: int, name: str, result: bool, currBraid: BraidWord) -> str:
         r"""
         Function to dynamically create log of Markov step @[mstep]
 
@@ -90,13 +90,15 @@ class MarkovChain:
 
         """
         beg = f"MoveType: {str(movetype)}, "
-        tmp = f"Attempted {name}: "
+        tmp = ""
         if result == True:
             tmp += name + " Succeeded."
         else:
             tmp += name + " Failed."
+            
+        braidWord = "Current braid word: [" + ', '.join(list(map(str, currBraid.word))) + "]. "
 
-        return beg + tmp
+        return braidWord + beg + tmp
 
     def model(self, num_braidreps: int = 1, msteps: int = 100):
         r"""
@@ -138,71 +140,71 @@ class MarkovChain:
                 if movetype == 0:
                     if braid.conjugate(index):
                         # append logs success
-                        log[step] = self.log_message(movetype, braid.conjugate.__name__, True)
+                        log[step] = self.log_message(movetype, braid.conjugate.__name__, True, self.braid)
                     else:
                         # append logs fail
-                        log[step] = self.log_message(movetype, braid.conjugate.__name__, False)
+                        log[step] = self.log_message(movetype, braid.conjugate.__name__, False, self.braid)
 
                 elif movetype == 1:
                     # Do not cancel if braid length is 2: unknot
                     if braid.length() == 2 and braid.canCancel(index):
-                        log[step] = self.log_message(movetype, (braid.cancel).__name__, False)
+                        log[step] = self.log_message(movetype, (braid.cancel).__name__, False, self.braid)
                         log[step] += 'Unknot'
                         continue
                     elif braid.cancel(index):
                         # append logs success
-                        log[step] = self.log_message(movetype, (braid.cancel).__name__, True)
+                        log[step] = self.log_message(movetype, (braid.cancel).__name__, True, self.braid)
                     else:
                         # append logs fail
-                        log[step] = self.log_message(movetype, (braid.cancel).__name__, False)
+                        log[step] = self.log_message(movetype, (braid.cancel).__name__, False, self.braid)
 
                 elif movetype == 2:
                     if (braid.length() <= self.maxlen-2
-                        and braid.insert(index, rr(braid.largestGenerator + 1))):
+                        and braid.insert(index, rr(1, braid.largestGenerator + 1))):
                         # append logs success
-                        log[step] = self.log_message(movetype, (braid.insert).__name__, True)
+                        log[step] = self.log_message(movetype, (braid.insert).__name__, True, self.braid)
                     else:
                         # append logs fail
-                        log[step] = self.log_message(movetype, (braid.insert).__name__, False)
+                        log[step] = self.log_message(movetype, (braid.insert).__name__, False, self.braid)
 
                 elif movetype == 3:
                     if braid.transpose(index):
                         # append logs success
-                        log[step] = self.log_message(movetype, (braid.transpose).__name__, True)
+                        log[step] = self.log_message(movetype, (braid.transpose).__name__, True, self.braid)
                     else:
                         # append logs fail
-                        log[step] = self.log_message(movetype, (braid.transpose).__name__, False)
+                        log[step] = self.log_message(movetype, (braid.transpose).__name__, False, self.braid)
 
                 elif movetype == 4:
                     if braid.flip(index):
                         # append logs success
-                        log[step] = self.log_message(movetype, (braid.flip).__name__, True)
+                        log[step] = self.log_message(movetype, (braid.flip).__name__, True, self.braid)
                     else:
                         # append logs fail
-                        log[step] = self.log_message(movetype, (braid.flip).__name__, False)
+                        log[step] = self.log_message(movetype, (braid.flip).__name__, False, self.braid)
 
                 elif movetype == 5:
                     if (braid.length() <= self.maxlen-1
                         and braid.largestGenerator < self.maxgen
                         and braid.stabilize()):
                         # append logs success
-                        log[step] = self.log_message(movetype, (braid.stabilize).__name__, True)
+                        log[step] = self.log_message(movetype, (braid.stabilize).__name__, True, self.braid)
                     else:
                         # append logs fail
-                        log[step] = self.log_message(movetype, (braid.stabilize).__name__, False)
+                        log[step] = self.log_message(movetype, (braid.stabilize).__name__, False, self.braid)
 
                 elif movetype == 6:
                     # Do not destabilize if braid length is 1: unknot
                     if braid.length() == 1 and braid.canDestabilize():
-                        log[step] = self.log_message(movetype, (braid.destabilize).__name__, False)
+                        log[step] = self.log_message(movetype, (braid.destabilize).__name__, False, self.braid)
                         log[step] += 'Unknot'
                         continue
                     elif braid.destabilize():
                         # append logs success
-                        log[step] = self.log_message(movetype, (braid.destabilize).__name__, True)
+                        log[step] = self.log_message(movetype, (braid.destabilize).__name__, True, self.braid)
                     else:
                         # append logs fail
-                        log[step] = self.log_message(movetype, (braid.destabilize).__name__, False)
+                        log[step] = self.log_message(movetype, (braid.destabilize).__name__, False, self.braid)
                 else:
                     # should not get to this point
                     continue
